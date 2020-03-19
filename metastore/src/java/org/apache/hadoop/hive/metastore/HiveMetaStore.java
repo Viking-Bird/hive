@@ -229,6 +229,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
+import org.datanucleus.api.jdo.JDOPersistenceManagerFactory;
 
 /**
  * TODO:pc remove application logic to a separate interface.
@@ -441,15 +442,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public void init() throws MetaException {
+      // 保存和查询表、数据库的原始元数据对象的类，该类实现了org.apache.hadoop.hive.metastore.rawstore接口
       rawStoreClassName = hiveConf.getVar(HiveConf.ConfVars.METASTORE_RAW_STORE_IMPL);
+      // HMSHandler初始化时调用的hook类列表，多个类之间以逗号分隔，这些类扩展自MetaStoreInitListener抽象类
       initListeners = MetaStoreUtils.getMetaStoreListeners(
           MetaStoreInitListener.class, hiveConf,
           hiveConf.getVar(HiveConf.ConfVars.METASTORE_INIT_HOOKS));
+      // 初始化hook
       for (MetaStoreInitListener singleInitListener: initListeners) {
           MetaStoreInitContext context = new MetaStoreInitContext();
           singleInitListener.onInit(context);
       }
 
+      // 实例化Hive Alter操作实现类
       String alterHandlerName = hiveConf.get("hive.metastore.alter.impl",
           HiveAlterHandler.class.getName());
       alterHandler = (AlterHandler) ReflectionUtils.newInstance(MetaStoreUtils.getClass(
@@ -465,6 +470,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       }
 
+      // 初始化方法操作计数器
       if (hiveConf.getBoolean("hive.metastore.metrics.enabled", false)) {
         try {
           Metrics.init();
@@ -475,6 +481,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       }
 
+      // 前置事件listener、事件listener和方法结束listener
       preListeners = MetaStoreUtils.getMetaStoreListeners(MetaStorePreEventListener.class,
           hiveConf,
           hiveConf.getVar(HiveConf.ConfVars.METASTORE_PRE_EVENT_LISTENERS));
@@ -485,6 +492,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           MetaStoreEndFunctionListener.class, hiveConf,
           hiveConf.getVar(HiveConf.ConfVars.METASTORE_END_FUNCTION_LISTENERS));
 
+      // 设置验证分区名称正则表达式
       String partitionValidationRegex =
           hiveConf.getVar(HiveConf.ConfVars.METASTORE_PARTITION_NAME_WHITELIST_PATTERN);
       if (partitionValidationRegex != null && !partitionValidationRegex.isEmpty()) {
@@ -493,6 +501,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         partitionValidationPattern = null;
       }
 
+      // 清理过期事件的频率
       long cleanFreq = hiveConf.getTimeVar(ConfVars.METASTORE_EVENT_CLEAN_FREQ, TimeUnit.MILLISECONDS);
       if (cleanFreq > 0) {
         // In default config, there is no timer.
@@ -5957,6 +5966,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // Server will create new threads up to max as necessary. After an idle
       // period, it will destroy threads to keep the number of threads in the
       // pool to min.
+      // 设置接收客户端的最大消息长度、最小和最大工作线程
       int maxMessageSize = conf.getIntVar(HiveConf.ConfVars.METASTORESERVERMAXMESSAGESIZE);
       int minWorkerThreads = conf.getIntVar(HiveConf.ConfVars.METASTORESERVERMINTHREADS);
       int maxWorkerThreads = conf.getIntVar(HiveConf.ConfVars.METASTORESERVERMAXTHREADS);
@@ -6097,6 +6107,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           // Per the javadocs on Condition, do not depend on the condition alone as a start gate
           // since spurious wake ups are possible.
           while (!startedServing.get()) startCondition.await();
+          // 启动Hive事务处理后台线程，仅ORC支持
           startCompactorInitiator(conf);
           startCompactorWorkers(conf);
           startCompactorCleaner(conf);

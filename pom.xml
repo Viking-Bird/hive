@@ -54,6 +54,7 @@
 
   <properties>
     <hive.version.shortname>1.2.0</hive.version.shortname>
+    <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
 
     <!-- Build Properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -170,6 +171,7 @@
     <felix.version>2.4.0</felix.version>
     <curator.version>2.6.0</curator.version>
     <jsr305.version>3.0.0</jsr305.version>
+    <mysql.version>5.1.48</mysql.version>
   </properties>
 
   <repositories>
@@ -597,6 +599,13 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>${slf4j.version}</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>${mysql.version}</version>
     </dependency>
   </dependencies>
 

@@ -33,6 +33,11 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectIn
 import org.apache.thrift.TUnion;
 
 /**
+ * ObjectInspectorFactory是创建ObjectInspector实例的主要方式
+ *
+ * 在这里使用缓存的原因是因为
+ * ObjectInspectors没有内部状态—因此具有相同构造参数的ObjectInspectors对象只有一个
+ *
  * ObjectInspectorFactory is the primary way to create new ObjectInspector
  * instances.
  *
@@ -61,6 +66,7 @@ public final class ObjectInspectorFactory {
     JAVA, THRIFT, PROTOCOL_BUFFERS, AVRO
   };
 
+  // 保存ObjectInspector实例：key为类型（比如org.apache.hadoop.io.Text），value为ObjectInspector实例（比如org.apache.hadoop.hive.serde2.objectinspector.primitive.WritableStringObjectInspector）
   private static ConcurrentHashMap<Type, ObjectInspector> objectInspectorCache = new ConcurrentHashMap<Type, ObjectInspector>();
 
   public static ObjectInspector getReflectionObjectInspector(Type t,

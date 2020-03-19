@@ -89,17 +89,20 @@ public class HiveServer2 extends CompositeService {
 
   @Override
   public synchronized void init(HiveConf hiveConf) {
+    //实例化clientService实例，该实例用于把用户请求转化并传递给Driver
     cliService = new CLIService(this);
     addService(cliService);
     if (isHTTPTransportMode(hiveConf)) {
       thriftCLIService = new ThriftHttpCLIService(cliService);
-    } else {
+    } else { //默认情况是Thrift二进制服务
       thriftCLIService = new ThriftBinaryCLIService(cliService);
     }
+    //添加进服务列表
     addService(thriftCLIService);
     super.init(hiveConf);
 
     // Add a shutdown hook for catching SIGTERM & SIGINT
+    // 添加关闭钩子
     final HiveServer2 hiveServer2 = this;
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
@@ -154,11 +157,13 @@ public class HiveServer2 extends CompositeService {
    * @throws Exception
    */
   private void addServerInstanceToZooKeeper(HiveConf hiveConf) throws Exception {
+    // 获取ZK服务器节点、Hive在ZK中注册的namespace、HiveServer2 thrift server的地址
     String zooKeeperEnsemble = ZooKeeperHiveHelper.getQuorumServers(hiveConf);
     String rootNamespace = hiveConf.getVar(HiveConf.ConfVars.HIVE_SERVER2_ZOOKEEPER_NAMESPACE);
     String instanceURI = getServerInstanceURI(hiveConf);
     byte[] znodeDataUTF8 = instanceURI.getBytes(Charset.forName("UTF-8"));
     setUpZooKeeperAuth(hiveConf);
+    // 获取ZK session超时时间、连接ZK失败重试间隔、重试次数
     int sessionTimeout =
         (int) hiveConf.getTimeVar(HiveConf.ConfVars.HIVE_ZOOKEEPER_SESSION_TIMEOUT,
             TimeUnit.MILLISECONDS);
@@ -187,6 +192,7 @@ public class HiveServer2 extends CompositeService {
     // Create a znode under the rootNamespace parent for this instance of the server
     // Znode name: serverUri=host:port;version=versionInfo;sequence=sequenceNumber
     try {
+      // 创建HiveServer2服务在ZK中的znode
       String pathPrefix =
           ZooKeeperHiveHelper.ZOOKEEPER_PATH_SEPARATOR + rootNamespace
               + ZooKeeperHiveHelper.ZOOKEEPER_PATH_SEPARATOR + "serverUri=" + instanceURI + ";"
@@ -203,6 +209,7 @@ public class HiveServer2 extends CompositeService {
       setRegisteredWithZooKeeper(true);
       znodePath = znode.getActualPath();
       // Set a watch on the znode
+      // 在HiveServer2服务在ZK中的znode上创建watch
       if (zooKeeperClient.checkExists().usingWatcher(new DeRegisterWatcher()).forPath(znodePath) == null) {
         // No node exists, throw exception
         throw new Exception("Unable to create znode for this HiveServer2 instance on ZooKeeper.");
@@ -342,7 +349,9 @@ public class HiveServer2 extends CompositeService {
       HiveServer2 server = null;
       try {
         server = new HiveServer2();
+        // 初始化
         server.init(hiveConf);
+        // 启动
         server.start();
         ShimLoader.getHadoopShims().startPauseMonitor(hiveConf);
         // If we're supporting dynamic service discovery, we'll add the service uri for this
@@ -361,6 +370,7 @@ public class HiveServer2 extends CompositeService {
         }
         break;
       } catch (Throwable throwable) {
+        // 出现异常就停止服务
         if (server != null) {
           try {
             server.stop();
@@ -370,12 +380,14 @@ public class HiveServer2 extends CompositeService {
             server = null;
           }
         }
+        // 如果抛出异常，并尝试启动超过了配置的最大尝试次数，抛出错误，启动失败
         if (++attempts >= maxAttempts) {
           throw new Error("Max start attempts " + maxAttempts + " exhausted", throwable);
         } else {
           LOG.warn("Error starting HiveServer2 on attempt " + attempts
               + ", will retry in 60 seconds", throwable);
           try {
+            //60秒后再次尝试启动
             Thread.sleep(60L * 1000L);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -443,6 +455,7 @@ public class HiveServer2 extends CompositeService {
   }
 
   public static void main(String[] args) {
+    //设置加载配置
     HiveConf.setLoadHiveServer2Config(true);
     try {
       ServerOptionsProcessor oproc = new ServerOptionsProcessor("hiveserver2");
@@ -458,6 +471,7 @@ public class HiveServer2 extends CompositeService {
       LOG.debug(oproc.getDebugMessage().toString());
 
       // Call the executor which will execute the appropriate command based on the parsed options
+      // 根据传入的命令行参数，调用executor执行相应的命令
       oprocResponse.getServerOptionsExecutor().execute();
     } catch (LogInitializationException e) {
       LOG.error("Error initializing log: " + e.getMessage(), e);
@@ -585,6 +599,7 @@ public class HiveServer2 extends CompositeService {
     @Override
     public void execute() {
       try {
+        //启动服务
         startHiveServer2();
       } catch (Throwable t) {
         LOG.fatal("Error starting HiveServer2", t);

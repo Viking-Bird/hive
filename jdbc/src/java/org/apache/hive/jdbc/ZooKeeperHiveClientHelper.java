@@ -73,7 +73,7 @@ public class ZooKeeperHiveClientHelper {
         throw new ZooKeeperHiveClientException(
             "Tried all existing HiveServer2 uris from ZooKeeper.");
       }
-      // Now pick a host randomly
+      // Now pick a host randomly 随机取一个节点
       serverNode = serverHosts.get(randomizer.nextInt(serverHosts.size()));
       connParams.setCurrentHostZnodePath(serverNode);
       String serverUri =

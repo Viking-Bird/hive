@@ -48,6 +48,7 @@ public class ThriftBinaryCLIService extends ThriftCLIService {
   public void run() {
     try {
       // Server thread pool
+      // 定义处理请求的线程池
       String threadPoolName = "HiveServer2-Handler-Pool";
       ExecutorService executorService = new ThreadPoolExecutor(minWorkerThreads, maxWorkerThreads,
           workerKeepAliveTime, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
@@ -59,9 +60,11 @@ public class ThriftBinaryCLIService extends ThriftCLIService {
       TProcessorFactory processorFactory = hiveAuthFactory.getAuthProcFactory(this);
       TServerSocket serverSocket = null;
       List<String> sslVersionBlacklist = new ArrayList<String>();
+      // 获取SSL黑名单
       for (String sslVersion : hiveConf.getVar(ConfVars.HIVE_SSL_PROTOCOL_BLACKLIST).split(",")) {
         sslVersionBlacklist.add(sslVersion);
       }
+      // 如果没有启用SSL，就启动普通TServerSocket服务，否则，启动带有SSL认证的TServerSocket服务
       if (!hiveConf.getBoolVar(ConfVars.HIVE_SERVER2_USE_SSL)) {
         serverSocket = HiveAuthFactory.getServerSocket(hiveHost, portNum);
       } else {
@@ -77,7 +80,9 @@ public class ThriftBinaryCLIService extends ThriftCLIService {
       }
 
       // Server args
+      // 获取HiveServer2允许的最大数据量
       int maxMessageSize = hiveConf.getIntVar(HiveConf.ConfVars.HIVE_SERVER2_THRIFT_MAX_MESSAGE_SIZE);
+      // 获取客户端请求HiveServer2的超时时间
       int requestTimeout = (int) hiveConf.getTimeVar(
           HiveConf.ConfVars.HIVE_SERVER2_THRIFT_LOGIN_TIMEOUT, TimeUnit.SECONDS);
       int beBackoffSlotLength = (int) hiveConf.getTimeVar(

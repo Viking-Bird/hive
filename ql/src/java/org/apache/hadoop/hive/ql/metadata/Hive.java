@@ -2581,7 +2581,7 @@ private void constructOneLBLocationMap(FileStatus fSta,
     // (1) Do not delete the dest dir before doing the move operation.
     // (2) It is assumed that subdir and dir are in same encryption zone.
     // (3) Move individual files from scr dir to dest dir.
-    boolean destIsSubDir = isSubDir(srcf, destf, fs, isSrcLocal);
+    boolean destIsSubDir = isSubDir(srcf, destf, fs, isSrcLocal); // 判断源目录是否在目标目录内
     try {
       if (inheritPerms || replace) {
         try{
@@ -2613,6 +2613,7 @@ private void constructOneLBLocationMap(FileStatus fSta,
               replace, // overwrite destination
               conf);
         } else {
+          // 有两种策略：如果源目录和目标目录是同一个根目录，则会源目录下的每个文件执行复制操作。反之，执行remane操作（只涉及元数据，不会有额外数据操作）。
           if (destIsSubDir) {
             FileStatus[] srcs = fs.listStatus(srcf, FileUtils.HIDDEN_FILES_PATH_FILTER);
             if (srcs.length == 0) {

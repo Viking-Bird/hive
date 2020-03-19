@@ -102,6 +102,8 @@ import com.google.common.collect.Iterables;
 
 /**
  * Implemention of shims against Hadoop 0.23.0.
+ *
+ * Hadoop 2.x兼容处理
  */
 public class Hadoop23Shims extends HadoopShimsSecure {
 
