@@ -396,6 +396,7 @@ public abstract class ThriftCLIService extends AbstractService implements TCLISe
     TProtocolVersion protocol = getMinVersion(CLIService.SERVER_VERSION,
         req.getClient_protocol());
     SessionHandle sessionHandle;
+    // 为匿名用户创建一个SessionHandle对象
     if (cliService.getHiveConf().getBoolVar(ConfVars.HIVE_SERVER2_ENABLE_DOAS) &&
         (userName != null)) {
       String delegationTokenStr = getDelegationToken(userName);

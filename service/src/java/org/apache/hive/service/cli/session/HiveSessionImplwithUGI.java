@@ -63,6 +63,7 @@ public class HiveSessionImplwithUGI extends HiveSessionImpl {
   }
 
   // setup appropriate UGI for the session
+  // 创建与当前Session对应的UserGroupInformation对象
   public void setSessionUGI(String owner) throws HiveSQLException {
     if (owner == null) {
       throw new HiveSQLException("No username provided for impersonation");

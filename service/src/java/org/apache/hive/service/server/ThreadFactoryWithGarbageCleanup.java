@@ -26,6 +26,7 @@ import java.util.concurrent.ThreadFactory;
 import org.apache.hadoop.hive.metastore.RawStore;
 
 /**
+ * 为HiveServer2自定义的线程工厂，主要是为了加入自定义的清理逻辑，然后在线程对象被GC回收的时候，调用该逻辑
  * A ThreadFactory for constructing new HiveServer2 threads that lets you plug
  * in custom cleanup code to be called before this thread is GC-ed.
  * Currently cleans up the following:

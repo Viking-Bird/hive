@@ -53,6 +53,7 @@ public class SessionManager extends CompositeService {
   private static final Log LOG = LogFactory.getLog(CompositeService.class);
   public static final String HIVERCFILE = ".hiverc";
   private HiveConf hiveConf;
+  // 一个HiveSession对应一个SessionHandle
   private final Map<SessionHandle, HiveSession> handleToSession =
       new ConcurrentHashMap<SessionHandle, HiveSession>();
   private final OperationManager operationManager = new OperationManager();
@@ -104,6 +105,7 @@ public class SessionManager extends CompositeService {
         new ThreadFactoryWithGarbageCleanup(threadPoolName));
     backgroundOperationPool.allowCoreThreadTimeOut(true);
 
+    // 设置session检查的频率、session空闲时间、是否检查空闲session
     checkInterval = HiveConf.getTimeVar(
         hiveConf, ConfVars.HIVE_SERVER2_SESSION_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
     sessionTimeout = HiveConf.getTimeVar(
@@ -150,6 +152,9 @@ public class SessionManager extends CompositeService {
     }
   }
 
+  /**
+   * 执行session超时检查操作
+   */
   private void startTimeoutChecker() {
     final long interval = Math.max(checkInterval, 3000l);  // minimum 3 seconds
     Runnable timeoutChecker = new Runnable() {
@@ -157,7 +162,11 @@ public class SessionManager extends CompositeService {
       public void run() {
         for (sleepInterval(interval); !shutdown; sleepInterval(interval)) {
           long current = System.currentTimeMillis();
+
           for (HiveSession session : new ArrayList<HiveSession>(handleToSession.values())) {
+            // 两个条件满足，说明session活着但是没有操作，那么就关闭session，释放资源：
+            // 1、session最后访问时间 + session空闲时间 <= 当前时间
+            // 2、session没有操作时间 > session空闲时间
             if (sessionTimeout > 0 && session.getLastAccessTime() + sessionTimeout <= current
                 && (!checkOperation || session.getNoOperationTime() > sessionTimeout)) {
               SessionHandle handle = session.getSessionHandle();
@@ -244,6 +253,8 @@ public class SessionManager extends CompositeService {
     HiveSession session;
     // If doAs is set to true for HiveServer2, we will create a proxy object for the session impl.
     // Within the proxy object, we wrap the method call in a UserGroupInformation#doAs
+    //如果HiveServer2的doAs设置为true，我们将为会话impl创建一个代理对象。
+    //在代理对象中，我们将方法调用封装在UserGroupInformation#doAs中
     if (withImpersonation) {
       HiveSessionImplwithUGI sessionWithUGI = new HiveSessionImplwithUGI(protocol, username, password,
           hiveConf, ipAddress, delegationToken);
