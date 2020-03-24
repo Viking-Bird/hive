@@ -5914,7 +5914,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Lock startLock = new ReentrantLock();
       Condition startCondition = startLock.newCondition();
       AtomicBoolean startedServing = new AtomicBoolean();
+      // 启动thrift服务之外的线程，比如压缩线程
       startMetaStoreThreads(conf, startLock, startCondition, startedServing);
+      // 启动HiveMetaStore
       startMetaStore(cli.port, ShimLoader.getHadoopThriftAuthBridge(), conf, startLock,
           startCondition, startedServing);
     } catch (Throwable t) {

@@ -3,6 +3,8 @@ package org.apache.hadoop.hive.metastore.mine;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hive.shims.Hadoop23Shims;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.datanucleus.api.jdo.JDOPersistenceManager;
+import org.datanucleus.api.jdo.JDOPersistenceManagerFactory;
 
 /**
  * @author pengwang
@@ -23,5 +25,9 @@ public class TestMetaStore {
         FileSystem fileSystem;
 
         UserGroupInformation userGroupInformation;
+
+        JDOPersistenceManagerFactory jdoPersistenceManagerFactory;
+
+        JDOPersistenceManager jdoPersistenceManager;
     }
 }

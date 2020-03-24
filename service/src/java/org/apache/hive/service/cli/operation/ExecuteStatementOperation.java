@@ -42,9 +42,19 @@ public abstract class ExecuteStatementOperation extends Operation {
     return statement;
   }
 
+  /**
+   * 创建具体的SQL操作对象
+   * @param parentSession
+   * @param statement
+   * @param confOverlay
+   * @param runAsync
+   * @return SQLOperation或者HiveCommandOperation
+   * @throws HiveSQLException
+   */
   public static ExecuteStatementOperation newExecuteStatementOperation(
       HiveSession parentSession, String statement, Map<String, String> confOverlay, boolean runAsync)
           throws HiveSQLException {
+    // 解析command命令，获取command命令处理器
     String[] tokens = statement.trim().split("\\s+");
     CommandProcessor processor = null;
     try {
@@ -52,6 +62,7 @@ public abstract class ExecuteStatementOperation extends Operation {
     } catch (SQLException e) {
       throw new HiveSQLException(e.getMessage(), e.getSQLState(), e);
     }
+    // 如果command命令处理器为空，则创建一个SQL操作对象(SQLOperation)，否则创建一个Hive命令操作对象(HiveCommandOperation)
     if (processor == null) {
       return new SQLOperation(parentSession, statement, confOverlay, runAsync);
     }
