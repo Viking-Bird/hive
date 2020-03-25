@@ -53,6 +53,7 @@ public class HiveSessionProxy implements InvocationHandler {
   public Object invoke(Object arg0, final Method method, final Object[] args)
       throws Throwable {
     try {
+      // 在HiveSessionBase声明的接口，直接执行。否则，走ugi.doAs逻辑执行
       if (method.getDeclaringClass() == HiveSessionBase.class) {
         return invoke(method, args);
       }
