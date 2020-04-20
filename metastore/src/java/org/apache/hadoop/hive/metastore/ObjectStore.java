@@ -172,6 +172,7 @@ public class ObjectStore implements RawStore, Configurable {
     NO_STATE, OPEN, COMMITED, ROLLBACK
   }
 
+  // 保存要缓存的对象
   private static final Map<String, Class> PINCLASSMAP;
   private static final String HOSTNAME;
   private static final String USER;
@@ -322,6 +323,7 @@ public class ObjectStore implements RawStore, Configurable {
   /**
    * Properties specified in hive-default.xml override the properties specified
    * in jpox.properties.
+   * 获取hive-sitx.xml中的数据库配置信息，覆盖hive-default.xml中的数据库配置信息
    */
   @SuppressWarnings("nls")
   private static Properties getDataSourceProps(Configuration conf) {
@@ -330,6 +332,7 @@ public class ObjectStore implements RawStore, Configurable {
     Iterator<Map.Entry<String, String>> iter = conf.iterator();
     while (iter.hasNext()) {
       Map.Entry<String, String> e = iter.next();
+      // 获取包含datanucleus和jdo关键字的配置信息
       if (e.getKey().contains("datanucleus") || e.getKey().contains("jdo")) {
         Object prevVal = prop.setProperty(e.getKey(), conf.get(e.getKey()));
         if (LOG.isDebugEnabled()
@@ -360,6 +363,10 @@ public class ObjectStore implements RawStore, Configurable {
     return prop;
   }
 
+  /**
+   * 设置要缓存的对象
+   * @return
+   */
   private static synchronized PersistenceManagerFactory getPMF() {
     if (pmf == null) {
       pmf = JDOHelper.getPersistenceManagerFactory(prop);

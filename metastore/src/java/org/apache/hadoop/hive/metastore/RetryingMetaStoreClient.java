@@ -39,6 +39,9 @@ import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.transport.TTransportException;
 
 /**
+ *
+ * HiveMetaStoreClient客户端代理对象，主要封装HiveMetaStore服务器异常处理逻辑
+ *
  * RetryingMetaStoreClient. Creates a proxy for a IMetaStoreClient
  * implementation and retries calls to it on failure.
  * If the login user is authenticated using keytab, it relogins user before
@@ -144,6 +147,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
     while (true) {
       try {
         reloginExpiringKeytabUser();
+        // 如果没有遇到异常，正常执行。否则，判断重试次数是否大于0，大于0，则调用base.reconnect()方法重建连接
         if (retriesMade > 0 || hasConnectionLifeTimeReached(method)) {
           base.reconnect();
           lastConnectionTime = System.currentTimeMillis();

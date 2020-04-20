@@ -284,6 +284,7 @@ public class AggregateStatsCache {
   public void add(String dbName, String tblName, String colName, long numPartsCached,
       ColumnStatisticsObj colStats, BloomFilter bloomFilter) {
     // If we have no space in the cache, run cleaner thread
+    //
     if (getCurrentNodes() / maxCacheNodes > maxFull) {
       spawnCleaner();
     }

@@ -36,6 +36,9 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.datanucleus.exceptions.NucleusException;
 
+/**
+ * HiveMetaStore操作代理对象，主要封装元数据操作异常处理逻辑和重试逻辑
+ */
 @InterfaceAudience.Private
 @InterfaceStability.Evolving
 public class RetryingHMSHandler implements InvocationHandler {
@@ -80,12 +83,16 @@ public class RetryingHMSHandler implements InvocationHandler {
   public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
     boolean gotNewConnectUrl = false;
+    // 标识是否强制重新加载HMSHandler配置，仅在测试模式下使用
     boolean reloadConf = HiveConf.getBoolVar(origConf,
         HiveConf.ConfVars.HMSHANDLERFORCERELOADCONF);
+    // 重试间隔
     long retryInterval = HiveConf.getTimeVar(origConf,
         HiveConf.ConfVars.HMSHANDLERINTERVAL, TimeUnit.MILLISECONDS);
+    // 重试次数
     int retryLimit = HiveConf.getIntVar(origConf,
         HiveConf.ConfVars.HMSHANDLERATTEMPTS);
+    // socket响应超时时间
     long timeout = HiveConf.getTimeVar(origConf,
         HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, TimeUnit.MILLISECONDS);
 
@@ -176,6 +183,8 @@ public class RetryingHMSHandler implements InvocationHandler {
           " with error: " + ExceptionUtils.getStackTrace(caughtException));
 
       Thread.sleep(retryInterval);
+
+      // 如果发生连接异常，JDO connection URL hook也许会提供一个新的数据库连接来访问数据库
       // If we have a connection error, the JDO connection URL hook might
       // provide us with a new URL to access the datastore.
       String lastUrl = MetaStoreInit.getConnectionURL(getActiveConf());

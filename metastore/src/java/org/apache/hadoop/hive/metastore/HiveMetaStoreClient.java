@@ -203,6 +203,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     }
 
     // get the number retries
+    // 获取重试次数和重试间隔
     retries = HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES);
     retryDelaySeconds = conf.getTimeVar(
         ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY, TimeUnit.SECONDS);
@@ -264,6 +265,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   /**
    * Swaps the first element of the metastoreUris array with a random element from the
    * remainder of the array.
+   * 用数组中的一个随机元素去替换metastoreUris中的第一个元素
    */
   private void promoteRandomMetaStoreURI() {
     if (metastoreUris.length <= 1) {
