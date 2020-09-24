@@ -48,7 +48,7 @@ public class ThriftBinaryCLIService extends ThriftCLIService {
   public void run() {
     try {
       // Server thread pool
-      // 定义处理请求的线程池
+      // 定义处理请求的线程池，线程池满，直接使用AbortPolicy策略拒绝任务
       String threadPoolName = "HiveServer2-Handler-Pool";
       ExecutorService executorService = new ThreadPoolExecutor(minWorkerThreads, maxWorkerThreads,
           workerKeepAliveTime, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
@@ -87,6 +87,9 @@ public class ThriftBinaryCLIService extends ThriftCLIService {
           HiveConf.ConfVars.HIVE_SERVER2_THRIFT_LOGIN_TIMEOUT, TimeUnit.SECONDS);
       int beBackoffSlotLength = (int) hiveConf.getTimeVar(
           HiveConf.ConfVars.HIVE_SERVER2_THRIFT_LOGIN_BEBACKOFF_SLOT_LENGTH, TimeUnit.MILLISECONDS);
+
+      // 构建TThreadPoolServer多线程服务器端，使用标准的阻塞式I/O
+      // 使用二进制传输模式
       TThreadPoolServer.Args sargs = new TThreadPoolServer.Args(serverSocket)
           .processorFactory(processorFactory).transportFactory(transportFactory)
           .protocolFactory(new TBinaryProtocol.Factory())

@@ -50,6 +50,7 @@ public class HiveSessionImplwithUGI extends HiveSessionImpl {
   public HiveSessionImplwithUGI(TProtocolVersion protocol, String username, String password,
       HiveConf hiveConf, String ipAddress, String delegationToken) throws HiveSQLException {
     super(protocol, username, password, hiveConf, ipAddress);
+    // 设置用户信息
     setSessionUGI(username);
     setDelegationToken(delegationToken);
 
@@ -111,6 +112,7 @@ public class HiveSessionImplwithUGI extends HiveSessionImpl {
         super.close();
       } finally {
         try {
+          // 关闭跟当前用户有关的所有FileSystem对象
           FileSystem.closeAllForUGI(sessionUgi);
         } catch (IOException ioe) {
           throw new HiveSQLException("Could not clean up file-system handles for UGI: "

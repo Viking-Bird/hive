@@ -6027,6 +6027,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       }
 
+      // 构建TThreadPoolServer多线程服务器端，使用标准的阻塞式I/O，线程池满，直接使用AbortPolicy策略拒绝任务
+      // 使用二进制传输模式
       TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverTransport)
           .processor(processor)
           .transportFactory(transFactory)

@@ -189,6 +189,7 @@ public class HiveConnection implements java.sql.Connection {
     supportedProtocols.add(TProtocolVersion.HIVE_CLI_SERVICE_PROTOCOL_V8);
 
     // open client session
+    // 打开客户端会话
     openSession();
   }
 
